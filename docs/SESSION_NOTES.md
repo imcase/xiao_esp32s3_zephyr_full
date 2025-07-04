@@ -26,10 +26,19 @@ select VIDEO
 
 **Preference**: Build without shield and use custom overlay and driver configuration (similar to ESP-IDF and Arduino approaches).
 
-### 4. Build Script Limitations
-**Issue**: Build script copies custom driver files and overlays but doesn't overwrite main Zephyr `drivers/video/Kconfig` file.
+### 4. Build Script Issues - FIXED
+**Problem**: Build script was overwriting Zephyr original files, which violates project rules.
 
-**Note**: The main Kconfig file includes all video drivers and should be checked manually if modified.
+**Issues Found**:
+- Force overwriting driver files (`ov2640_esp32s3.c`, `Kconfig.ov2640_esp32s3`)
+- Force overwriting board overlay files (`xiao_esp32s3.overlay`, `xiao_esp32s3_procpu.overlay`, etc.)
+- Copying overlays to multiple board variants, potentially overwriting originals
+
+**Solution**: 
+- Modified build script to use `safe_copy` function for all file operations
+- Removed all force overwrite operations
+- Only copy custom files that don't exist in Zephyr tree
+- Use separate custom overlay file (`xiao_esp32s3_ov2640.overlay`) instead of overwriting existing ones
 
 ### 5. Persistent Circular Dependency Error
 **Problem**: Despite local Kconfig file being correct (no circular dependency), build system still reports circular dependency error.

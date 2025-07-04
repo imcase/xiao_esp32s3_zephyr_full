@@ -80,37 +80,27 @@ else
     echo -e "${PRINT_WARNING} No device tree bindings found at $DTS_LOCAL_DIR"
 fi
 
-# 1b2. Force overwrite updated files that have been modified
-echo -e "${PRINT_INFO} Force overwriting updated driver files..."
-cp "${REPO_DIR}/drivers/video/Kconfig.ov2640_esp32s3" "${ZEPHYR_DIR}/drivers/video/Kconfig.ov2640_esp32s3"
-cp "${REPO_DIR}/drivers/video/ov2640_esp32s3.c" "${ZEPHYR_DIR}/drivers/video/ov2640_esp32s3.c"
-echo -e "${PRINT_SUCCESS} Updated driver files copied."
+# 1b2. Copy custom driver files (only if they don't exist)
+echo -e "${PRINT_INFO} Copying custom driver files..."
+safe_copy "${REPO_DIR}/drivers/video/Kconfig.ov2640_esp32s3" "${ZEPHYR_DIR}/drivers/video/Kconfig.ov2640_esp32s3"
+safe_copy "${REPO_DIR}/drivers/video/ov2640_esp32s3.c" "${ZEPHYR_DIR}/drivers/video/ov2640_esp32s3.c"
+safe_copy "${REPO_DIR}/drivers/video/ov2640_esp32s3.h" "${ZEPHYR_DIR}/drivers/video/ov2640_esp32s3.h"
 
-# 1b3. Force overwrite overlay files
-echo -e "${PRINT_INFO} Force overwriting updated overlay files..."
-cp "${REPO_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3.overlay" "${ZEPHYR_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3.overlay"
-cp "${REPO_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3.overlay" "${ZEPHYR_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3_procpu.overlay"
-cp "${REPO_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3.overlay" "${ZEPHYR_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3_procpu_sense.overlay"
-echo -e "${PRINT_SUCCESS} Updated overlay files copied."
+# 1b3. Copy custom overlay files (only if they don't exist)
+echo -e "${PRINT_INFO} Copying custom overlay files..."
+safe_copy "${REPO_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3_ov2640.overlay" "${ZEPHYR_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3_ov2640.overlay"
 
-# 1c. Copy local overlay to Zephyr board directory (for all relevant board variants, without overwriting originals)
-LOCAL_OVERLAY="${REPO_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3.overlay"
+# 1c. Copy custom overlay to Zephyr board directory (only if it doesn't exist)
+LOCAL_OVERLAY="${REPO_DIR}/boards/seeed/xiao_esp32s3/xiao_esp32s3_ov2640.overlay"
 ZEPHYR_OVERLAY_DIR="${ZEPHYR_DIR}/boards/seeed/xiao_esp32s3"
-for variant in xiao_esp32s3 xiao_esp32s3_procpu xiao_esp32s3_procpu_sense; do
-    ZEPHYR_OVERLAY_TARGET="${ZEPHYR_OVERLAY_DIR}/${variant}.overlay"
-    if [ -f "$LOCAL_OVERLAY" ]; then
-        echo -e "${PRINT_INFO} Copying local overlay to Zephyr board directory as $variant.overlay..."
-        if [ -e "$ZEPHYR_OVERLAY_TARGET" ]; then
-            echo -e "${PRINT_WARNING} Not overwriting existing Zephyr overlay: $ZEPHYR_OVERLAY_TARGET"
-        else
-            mkdir -p "$ZEPHYR_OVERLAY_DIR"
-            cp "$LOCAL_OVERLAY" "$ZEPHYR_OVERLAY_TARGET"
-            echo -e "${PRINT_SUCCESS} Copied overlay: $LOCAL_OVERLAY -> $ZEPHYR_OVERLAY_TARGET"
-        fi
-    else
-        echo -e "${PRINT_WARNING} Local overlay not found: $LOCAL_OVERLAY"
-    fi
-done
+ZEPHYR_OVERLAY_TARGET="${ZEPHYR_OVERLAY_DIR}/xiao_esp32s3_ov2640.overlay"
+
+if [ -f "$LOCAL_OVERLAY" ]; then
+    echo -e "${PRINT_INFO} Copying custom overlay to Zephyr board directory..."
+    safe_copy "$LOCAL_OVERLAY" "$ZEPHYR_OVERLAY_TARGET"
+else
+    echo -e "${PRINT_WARNING} Custom overlay not found: $LOCAL_OVERLAY"
+fi
 
 # 1d. Remove the build directory for a clean build
 SAMPLE_DIR="${ZEPHYR_DIR}/samples/drivers/video/test_ov2640_esp32s3"
