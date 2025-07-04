@@ -1,0 +1,113 @@
+/*
+ * Local Zephyr device tree overlay for XIAO ESP32S3 Sense camera integration
+ * Maintained in project repo for version control and safe integration
+ *
+ * Pin mapping matches ESP-IDF reference for XIAO ESP32S3 Sense
+ */
+
+#include <zephyr/dt-bindings/gpio/gpio.h>
+#include <dt-bindings/pinctrl/esp32s3-pinctrl.h>
+
+/ {
+	chosen {
+		zephyr,camera = &ov2640;
+	};
+
+	aliases {
+		camera = &ov2640;
+	};
+};
+
+&gpio0 {
+	status = "okay";
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&dma {
+	status = "okay";
+};
+
+&lcd_cam {
+	status = "okay";
+	cam-clk = <20000000>;
+	pinctrl-0 = <&lcd_cam_pins>;
+	pinctrl-names = "default";
+	source = <&ov2640>;
+
+	dmas = <&dma 2>;
+	dma-names = "rx";
+
+	port {
+		lcd_cam_ep_in: endpoint {
+			remote-endpoint = <&ov2640_ep_out>;
+		};
+	};
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <100000>;
+	pinctrl-0 = <&i2c0_camera>;
+	pinctrl-names = "default";
+
+	ov2640: ov2640@30 {
+		compatible = "ovti,ov2640-esp32s3";
+		reg = <0x30>;
+		status = "okay";
+
+		/* Camera control pins */
+		xclk-gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
+		xclk-frequency = <20000000>;
+
+		pclk-pin = <13>;
+		vsync-pin = <38>;
+		href-pin = <47>;
+		data-pins = <15 17 18 16 14 12 11 48>;
+
+		clock-rate-control = <0x80>;
+
+		port {
+			ov2640_ep_out: endpoint {
+				remote-endpoint = <&lcd_cam_ep_in>;
+			};
+		};
+	};
+};
+
+&pinctrl {
+	i2c0_camera: i2c0_camera {
+		group1 {
+			pinmux = <I2C0_SDA_GPIO40>,  /* SIOD */
+				 <I2C0_SCL_GPIO39>;  /* SIOC */
+			bias-pull-up;
+			drive-open-drain;
+			output-high;
+			input-enable;
+		};
+	};
+
+	lcd_cam_pins: lcd_cam_pins {
+		group1 {
+			pinmux = <LCD_CAM_CAM_CLK_GPIO10>;  /* XCLK */
+			output-enable;
+		};
+		group2 {
+			pinmux = <LCD_CAM_V_SYNC_CAM_GPIO38>,   /* VSYNC */
+				 <LCD_CAM_H_ENABLE_CAM_GPIO47>, /* HREF */
+				 <LCD_CAM_CAM_PCLK_GPIO13>,     /* PCLK */
+				 <LCD_CAM_DATA_IN0_GPIO15>,     /* Y2 */
+				 <LCD_CAM_DATA_IN1_GPIO17>,     /* Y3 */
+				 <LCD_CAM_DATA_IN2_GPIO18>,     /* Y4 */
+				 <LCD_CAM_DATA_IN3_GPIO16>,     /* Y5 */
+				 <LCD_CAM_DATA_IN4_GPIO14>,     /* Y6 */
+				 <LCD_CAM_DATA_IN5_GPIO12>,     /* Y7 */
+				 <LCD_CAM_DATA_IN6_GPIO11>,     /* Y8 */
+				 <LCD_CAM_DATA_IN7_GPIO48>;     /* Y9 */
+			input-enable;
+			bias-disable;
+		};
+	};
+}; 

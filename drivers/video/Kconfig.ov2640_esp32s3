@@ -1,0 +1,26 @@
+# OV2640 camera sensor driver configuration
+
+config VIDEO_OV2640_ESP32S3
+	bool "OV2640 camera sensor driver for ESP32S3"
+	depends on DT_HAS_OVTI_OV2640_ESP32S3_ENABLED
+	depends on SOC_ESP32S3
+	select VIDEO
+	select VIDEO_BUFFER
+	select DMA
+	select I2C
+	select GPIO
+	help
+	  Enable driver for OV2640 camera sensor on ESP32S3.
+	  This driver provides a bridge between Zephyr's video API
+	  and ESP-IDF camera driver functionality.
+
+if VIDEO_OV2640_ESP32S3
+
+config VIDEO_OV2640_ESP32S3_INIT_PRIORITY
+	int "OV2640 driver initialization priority"
+	default 90
+	help
+	  OV2640 driver initialization priority. Should be initialized
+	  after I2C but before applications.
+
+endif # VIDEO_OV2640_ESP32S3 

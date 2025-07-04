@@ -1,0 +1,33 @@
+# Device tree binding for OV2640 camera sensor
+# Compatible with Zephyr video subsystem
+
+description: |
+  OV2640 camera sensor from OmniVision Technologies.
+  This is a 2 megapixel CMOS image sensor with UXGA resolution
+  and JPEG output capability.
+
+compatible: "ovti,ov2640"
+
+include: [sensor-device.yaml, i2c-device.yaml]
+
+properties:
+  reg:
+    required: true
+    description: I2C address of the sensor
+
+  xclk-frequency:
+    type: int
+    description: External clock frequency in Hz
+    default: 20000000
+
+  reset-gpios:
+    type: phandle-array
+    description: GPIO for reset signal (active low)
+
+  powerdown-gpios:
+    type: phandle-array  
+    description: GPIO for powerdown signal (active high)
+
+  port:
+    type: compound
+    description: Video port for camera interface 
